@@ -112,7 +112,7 @@ function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResul
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-muted/40 rounded-lg p-3 text-center">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Loan Amount</p>
           <p className="tabular-nums font-bold text-sm">{fmtCAD(totalPrincipal, true)}</p>
@@ -129,12 +129,13 @@ function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResul
         </div>
       </div>
 
+      <div className="flex flex-col md:flex-row gap-5">
       {/* Stacked bar — yearly principal vs interest */}
-      <div>
+      <div className="flex-1 w-full min-w-0">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Annual Principal vs Interest
         </p>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={300}>
           <BarChart data={yearlyData} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis
@@ -157,11 +158,11 @@ function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResul
       </div>
 
       {/* Line chart — cumulative principal vs interest vs balance */}
-      <div>
+      <div className="flex-1 w-full min-w-0">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Cumulative Over Time
         </p>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={cumulativeData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis
@@ -181,6 +182,7 @@ function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResul
             <Line type="monotone" dataKey="Remaining Balance" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
+      </div>
       </div>
 
       {/* The crossover point — when you've paid more principal than interest */}

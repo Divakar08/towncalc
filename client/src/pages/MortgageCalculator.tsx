@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { computeScenarios, MortgageInputs, ScenarioResult, fmtCAD, fmtPct, Term } from "@/lib/mortgage";
 import { InputSidebar } from "@/components/InputSidebar";
 import { ScenarioCards } from "@/components/ScenarioCards";
@@ -30,12 +30,11 @@ export default function MortgageCalculator() {
   const toggleDark = () => {
     const next = !darkMode;
     setDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
   };
 
-  useMemo(() => {
+  useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
-  }, []);
+  }, [darkMode]);
 
   const scenarios: ScenarioResult[] = useMemo(() => computeScenarios(inputs), [inputs]);
 
@@ -44,9 +43,9 @@ export default function MortgageCalculator() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background text-foreground">
       {/* ── Left Sidebar ── */}
-      <aside className="w-72 min-w-[270px] flex-shrink-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-y-auto flex flex-col">
+      <aside className="w-full md:w-72 md:min-w-[270px] flex-shrink-0 bg-sidebar text-sidebar-foreground border-b md:border-b-0 md:border-r border-sidebar-border overflow-y-auto flex flex-col max-h-[50vh] md:max-h-full">
         {/* Logo */}
         <div className="px-5 py-5 border-b border-sidebar-border flex items-center gap-3">
           <div className="w-8 h-8 flex-shrink-0">
@@ -105,8 +104,8 @@ export default function MortgageCalculator() {
           </section>
 
           {/* Payment analysis tabs + bi-weekly panel */}
-          <div className="flex gap-5 items-start min-w-0">
-            <section className="flex-1 min-w-0">
+          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
+            <section className="w-full xl:flex-1 min-w-0">
               <TermTabs
                 scenarios={scenarios}
                 selectedTerm={selectedTerm}
@@ -114,17 +113,17 @@ export default function MortgageCalculator() {
                 inputs={inputs}
               />
             </section>
-            <section className="w-80 flex-shrink-0">
+            <section className="w-full xl:w-80 flex-shrink-0">
               <BiWeeklyPanel scenarios={scenarios} />
             </section>
           </div>
 
           {/* NEW: Amortization breakdown + Lump-sum calculator side by side */}
-          <div className="flex gap-5 items-start min-w-0">
-            <section className="flex-1 min-w-0">
+          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
+            <section className="w-full xl:flex-1 min-w-0">
               <AmortizationChart scenarios={scenarios} annualRate={inputs.annualRate} />
             </section>
-            <section className="w-[480px] flex-shrink-0">
+            <section className="w-full xl:w-[480px] flex-shrink-0">
               <LumpSumCalculator scenarios={scenarios} annualRate={inputs.annualRate} />
             </section>
           </div>
