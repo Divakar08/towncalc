@@ -41,7 +41,7 @@ export function ScenarioCards({ scenarios, selectedTerm }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
       {scenarios.map((s, i) => {
         const termResult = s.terms[selectedTerm];
         return (

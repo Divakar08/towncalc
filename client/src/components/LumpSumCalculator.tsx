@@ -119,7 +119,7 @@ function TermContent({
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <DollarSign size={12} className="text-emerald-600 dark:text-emerald-400" />
