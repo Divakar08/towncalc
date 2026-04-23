@@ -23,6 +23,8 @@ export interface MortgageInputs {
   homeInsuranceMonthly: number;
   postTaxIncomeMonthly: number;
   householdSpendingMonthly: number;
+  customDownPaymentValue?: number;
+  customDownPaymentMode?: "percent" | "dollar";
 }
 
 export interface PaymentDetail {
@@ -48,6 +50,8 @@ export interface TermResult {
   totalEMI: number; // mortgage + strata + tax + insurance
   totalEMIWithSpending: number; // totalEMI + household spending
   inHandMonthly: number; // postTaxIncome - totalEMI - householdSpending
+  cmhcPremium: number;
+  insuredPrincipal: number; // principal + CMHC premium
 }
 
 export interface ScenarioResult {
@@ -56,8 +60,6 @@ export interface ScenarioResult {
   downPaymentAmount: number;
   principal: number;
   isCMHC: boolean; // true for minimum down payment (requires CMHC insurance)
-  cmhcPremium: number;
-  insuredPrincipal: number; // principal + CMHC premium
   terms: Record<Term, TermResult>;
 }
 
@@ -78,20 +80,26 @@ export function calcMinDownPayment(propertyValue: number): number {
 }
 
 // CMHC mortgage insurance premium rate
-function cmhcPremiumRate(ltv: number): number {
+function cmhcPremiumRate(ltv: number, term: Term): number {
   // LTV = principal / property value
-  if (ltv <= 0.65) return 0.006; // Technically not required but capped
-  if (ltv <= 0.75) return 0.017;
-  if (ltv <= 0.80) return 0.024;
-  if (ltv <= 0.85) return 0.028;
-  if (ltv <= 0.90) return 0.031;
-  return 0.040; // up to 95%
+  let rate = 0;
+  if (ltv <= 0.65) rate = 0.006; // Technically not required but capped
+  else if (ltv <= 0.75) rate = 0.017;
+  else if (ltv <= 0.80) rate = 0.024;
+  else if (ltv <= 0.85) rate = 0.028;
+  else if (ltv <= 0.90) rate = 0.031;
+  else rate = 0.040; // up to 95%
+
+  if (term === 30) {
+    rate += 0.0020; // 0.20% surcharge for 30 year amortizations
+  }
+  return rate;
 }
 
-function calcCMHCPremium(principal: number, propertyValue: number): number {
+function calcCMHCPremium(principal: number, propertyValue: number, term: Term): number {
   const ltv = principal / propertyValue;
   if (ltv <= 0.80) return 0; // No CMHC required at 20%+ down
-  return principal * cmhcPremiumRate(ltv);
+  return principal * cmhcPremiumRate(ltv, term);
 }
 
 // ---------------------------------------------------------------
@@ -157,12 +165,17 @@ function calcDecisionExplanation(
 // Compute a single term result
 // ---------------------------------------------------------------
 function calcTermResult(
-  insuredPrincipal: number,
+  principal: number,
+  isCMHC: boolean,
+  propertyValue: number,
   inputs: MortgageInputs,
   term: Term
 ): TermResult {
   const { annualRate, strataMonthly, propertyTaxMonthly, homeInsuranceMonthly,
           postTaxIncomeMonthly, householdSpendingMonthly } = inputs;
+
+  const cmhcPremium = isCMHC ? calcCMHCPremium(principal, propertyValue, term) : 0;
+  const insuredPrincipal = principal + cmhcPremium;
 
   const monthly = calcPaymentDetail(insuredPrincipal, annualRate, "monthly", term);
   const biweekly = calcPaymentDetail(insuredPrincipal, annualRate, "biweekly", term);
@@ -198,34 +211,57 @@ function calcTermResult(
     totalEMI,
     totalEMIWithSpending,
     inHandMonthly,
+    cmhcPremium,
+    insuredPrincipal,
   };
 }
 
 // ---------------------------------------------------------------
-// Main: compute all 4 scenarios
+// Main: compute all scenarios
 // ---------------------------------------------------------------
 export function computeScenarios(inputs: MortgageInputs): ScenarioResult[] {
-  const { propertyValue } = inputs;
+  const { propertyValue, customDownPaymentValue = 0, customDownPaymentMode = "percent" } = inputs;
 
   const minDown = calcMinDownPayment(propertyValue);
   const minDownPercent = minDown / propertyValue;
+
+  let customDownAmount = 0;
+  let customDownPct = 0;
+
+  if (customDownPaymentMode === "percent") {
+    customDownPct = customDownPaymentValue / 100;
+    customDownAmount = propertyValue * customDownPct;
+  } else {
+    customDownAmount = customDownPaymentValue;
+    customDownPct = propertyValue > 0 ? customDownAmount / propertyValue : 0;
+  }
+
+  // Cap custom down payment at min down payment to ensure validity
+  if (customDownAmount < minDown) {
+    customDownAmount = minDown;
+    customDownPct = minDownPercent;
+  }
+  // Cap custom down payment at max property value
+  if (customDownAmount > propertyValue) {
+      customDownAmount = propertyValue;
+      customDownPct = 1.0;
+  }
 
   const scenarioDefs = [
     { label: "Min Down", downPaymentAmount: minDown, downPaymentPercent: minDownPercent },
     { label: "10% Down", downPaymentAmount: propertyValue * 0.10, downPaymentPercent: 0.10 },
     { label: "15% Down", downPaymentAmount: propertyValue * 0.15, downPaymentPercent: 0.15 },
     { label: "20% Down", downPaymentAmount: propertyValue * 0.20, downPaymentPercent: 0.20 },
+    { label: "Custom", downPaymentAmount: customDownAmount, downPaymentPercent: customDownPct },
   ];
 
   return scenarioDefs.map((def) => {
     const principal = propertyValue - def.downPaymentAmount;
     const isCMHC = def.downPaymentPercent < 0.20;
-    const cmhcPremium = isCMHC ? calcCMHCPremium(principal, propertyValue) : 0;
-    const insuredPrincipal = principal + cmhcPremium;
 
     const terms: Record<Term, TermResult> = {
-      25: calcTermResult(insuredPrincipal, inputs, 25),
-      30: calcTermResult(insuredPrincipal, inputs, 30),
+      25: calcTermResult(principal, isCMHC, propertyValue, inputs, 25),
+      30: calcTermResult(principal, isCMHC, propertyValue, inputs, 30),
     };
 
     return {
@@ -234,8 +270,6 @@ export function computeScenarios(inputs: MortgageInputs): ScenarioResult[] {
       downPaymentAmount: def.downPaymentAmount,
       principal,
       isCMHC,
-      cmhcPremium,
-      insuredPrincipal,
       terms,
     };
   });

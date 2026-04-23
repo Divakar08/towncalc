@@ -59,10 +59,11 @@ function TermContent({
 }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const scenario = scenarios[selectedIdx];
+  const termResult = scenario.terms[term];
 
   const result = useMemo(
-    () => calcLumpSumScenario(scenario.insuredPrincipal, annualRate, term, lumpSum),
-    [scenario.insuredPrincipal, annualRate, term, lumpSum]
+    () => calcLumpSumScenario(termResult.insuredPrincipal, annualRate, term, lumpSum),
+    [termResult.insuredPrincipal, annualRate, term, lumpSum]
   );
 
   const yearsSaved = term - result.yearsToPayoff;
@@ -70,8 +71,8 @@ function TermContent({
 
   // Build chart comparing balance with vs without lump sum
   const noLumpResult = useMemo(
-    () => calcLumpSumScenario(scenario.insuredPrincipal, annualRate, term, 0),
-    [scenario.insuredPrincipal, annualRate, term]
+    () => calcLumpSumScenario(termResult.insuredPrincipal, annualRate, term, 0),
+    [termResult.insuredPrincipal, annualRate, term]
   );
 
   // Merge data up to baseline term

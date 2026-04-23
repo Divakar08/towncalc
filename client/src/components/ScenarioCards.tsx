@@ -38,10 +38,11 @@ export function ScenarioCards({ scenarios, selectedTerm }: Props) {
     "border-l-[hsl(var(--chart-2))]",
     "border-l-[hsl(var(--chart-3))]",
     "border-l-[hsl(var(--chart-4))]",
+    "border-l-[hsl(var(--chart-5))]",
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
       {scenarios.map((s, i) => {
         const termResult = s.terms[selectedTerm];
         return (
@@ -80,12 +81,17 @@ export function ScenarioCards({ scenarios, selectedTerm }: Props) {
               </div>
               <div className="flex justify-between items-baseline">
                 <span className="text-[11px] text-muted-foreground">Principal</span>
-                <span className="tabular-nums text-xs font-semibold">{fmtCAD(s.insuredPrincipal, true)}</span>
+                <span className="tabular-nums text-xs font-semibold">{fmtCAD(termResult.insuredPrincipal, true)}</span>
               </div>
-              {s.isCMHC && s.cmhcPremium > 0 && (
+              {s.isCMHC && termResult.cmhcPremium > 0 && (
                 <div className="flex justify-between items-baseline">
-                  <span className="text-[11px] text-muted-foreground">CMHC premium</span>
-                  <span className="tabular-nums text-[11px] text-amber-600 dark:text-amber-400">+{fmtCAD(s.cmhcPremium, true)}</span>
+                  <span
+                    className="text-[11px] text-muted-foreground border-b border-dashed border-muted-foreground/50 cursor-help"
+                    title="Provincial Sales Tax (PST) may apply"
+                  >
+                    CMHC premium
+                  </span>
+                  <span className="tabular-nums text-[11px] text-amber-600 dark:text-amber-400">+{fmtCAD(termResult.cmhcPremium, true)}</span>
                 </div>
               )}
             </div>

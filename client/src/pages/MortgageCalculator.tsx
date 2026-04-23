@@ -103,29 +103,34 @@ export default function MortgageCalculator() {
             <ScenarioCards scenarios={scenarios} selectedTerm={selectedTerm} />
           </section>
 
-          {/* Payment analysis tabs + bi-weekly panel */}
-          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
-            <section className="w-full xl:flex-1 min-w-0">
-              <TermTabs
-                scenarios={scenarios}
-                selectedTerm={selectedTerm}
-                onTermChange={setSelectedTerm}
-                inputs={inputs}
-              />
-            </section>
-            <section className="w-full xl:w-80 flex-shrink-0">
-              <BiWeeklyPanel scenarios={scenarios} />
-            </section>
-          </div>
+          {/* Grid layout for Payment Analysis, Bi-weekly, Amortization, and Lump Sum panels */}
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_minmax(320px,480px)] gap-5 items-start min-w-0">
 
-          {/* NEW: Amortization breakdown + Lump-sum calculator side by side */}
-          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
-            <section className="w-full xl:flex-1 min-w-0">
-              <AmortizationChart scenarios={scenarios} annualRate={inputs.annualRate} />
-            </section>
-            <section className="w-full xl:w-[480px] flex-shrink-0">
-              <LumpSumCalculator scenarios={scenarios} annualRate={inputs.annualRate} />
-            </section>
+            {/* Left Column (Main Analysis & Charts) */}
+            <div className="flex flex-col gap-5 min-w-0">
+              <section className="w-full min-w-0">
+                <TermTabs
+                  scenarios={scenarios}
+                  selectedTerm={selectedTerm}
+                  onTermChange={setSelectedTerm}
+                  inputs={inputs}
+                />
+              </section>
+              <section className="w-full min-w-0">
+                <AmortizationChart scenarios={scenarios} annualRate={inputs.annualRate} />
+              </section>
+            </div>
+
+            {/* Right Column (Side Panels) */}
+            <div className="flex flex-col gap-5 min-w-0">
+              <section className="w-full min-w-0">
+                <BiWeeklyPanel scenarios={scenarios} />
+              </section>
+              <section className="w-full min-w-0">
+                <LumpSumCalculator scenarios={scenarios} annualRate={inputs.annualRate} />
+              </section>
+            </div>
+
           </div>
         </div>
       </main>
