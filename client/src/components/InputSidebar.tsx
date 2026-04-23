@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { MortgageInputs } from "@/lib/mortgage";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,28 @@ interface NumberFieldProps {
 }
 
 function NumberField({ label, value, onChange, prefix, suffix, step = 1, min = 0, testId, hint }: NumberFieldProps) {
+  const [localValue, setLocalValue] = useState(value.toString());
+
+  useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
+
+  const handleBlur = () => {
+    const num = Number(localValue);
+    if (!isNaN(num)) {
+      onChange(num);
+      setLocalValue(num.toString()); // Reformat based on valid number
+    } else {
+      setLocalValue(value.toString()); // Revert if invalid
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleBlur();
+    }
+  };
+
   return (
     <div className="px-5 mb-3">
       <Label className="text-sidebar-foreground/70 text-xs mb-1.5 block">{label}</Label>
@@ -43,10 +66,12 @@ function NumberField({ label, value, onChange, prefix, suffix, step = 1, min = 0
         )}
         <Input
           type="number"
-          value={value}
+          value={localValue}
           step={step}
           min={min}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           className={`h-8 text-xs bg-sidebar-accent/30 border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus-visible:ring-sidebar-primary ${prefix ? "pl-6" : ""} ${suffix ? "pr-10" : ""}`}
           data-testid={testId}
         />
@@ -66,21 +91,123 @@ function RateField({ label, value, onChange, testId }: {
   onChange: (v: number) => void;
   testId?: string;
 }) {
+  const [localValue, setLocalValue] = useState((value * 100).toFixed(2));
+
+  useEffect(() => {
+    setLocalValue((value * 100).toFixed(2));
+  }, [value]);
+
+  const handleBlur = () => {
+    const num = Number(localValue);
+    if (!isNaN(num)) {
+      onChange(num / 100);
+      setLocalValue(num.toFixed(2)); // Reformat based on valid number
+    } else {
+      setLocalValue((value * 100).toFixed(2)); // Revert if invalid
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleBlur();
+    }
+  };
+
   return (
     <div className="px-5 mb-3">
       <Label className="text-sidebar-foreground/70 text-xs mb-1.5 block">{label}</Label>
       <div className="relative flex items-center">
         <Input
           type="number"
-          value={(value * 100).toFixed(2)}
+          value={localValue}
           step={0.05}
           min={0}
           max={25}
-          onChange={(e) => onChange(Number(e.target.value) / 100)}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           className="h-8 text-xs bg-sidebar-accent/30 border-sidebar-border text-sidebar-foreground focus-visible:ring-sidebar-primary pr-8"
           data-testid={testId}
         />
         <span className="absolute right-2.5 text-sidebar-foreground/50 text-xs pointer-events-none select-none">%</span>
+      </div>
+    </div>
+  );
+}
+
+function CustomDownPaymentField({ label, value, mode, onChangeValue, onChangeMode, testId }: {
+  label: string;
+  value: number;
+  mode: "percent" | "dollar";
+  onChangeValue: (v: number) => void;
+  onChangeMode: (m: "percent" | "dollar") => void;
+  testId?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value.toString());
+
+  useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
+
+  const handleBlur = () => {
+    const num = Number(localValue);
+    if (!isNaN(num)) {
+      onChangeValue(num);
+      setLocalValue(num.toString());
+    } else {
+      setLocalValue(value.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleBlur();
+    }
+  };
+
+  return (
+    <div className="px-5 mb-3">
+      <div className="flex justify-between items-end mb-1.5">
+        <Label className="text-sidebar-foreground/70 text-xs">{label}</Label>
+        <div className="flex items-center gap-1 bg-sidebar-accent/30 rounded p-0.5 border border-sidebar-border">
+          <button
+            type="button"
+            className={`px-2 py-0.5 text-[10px] rounded ${mode === 'percent' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/50 hover:text-sidebar-foreground'}`}
+            onClick={() => onChangeMode('percent')}
+          >
+            %
+          </button>
+          <button
+            type="button"
+            className={`px-2 py-0.5 text-[10px] rounded ${mode === 'dollar' ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/50 hover:text-sidebar-foreground'}`}
+            onClick={() => onChangeMode('dollar')}
+          >
+            $
+          </button>
+        </div>
+      </div>
+      <div className="relative flex items-center">
+        {mode === 'dollar' && (
+          <span className="absolute left-2.5 text-sidebar-foreground/50 text-xs pointer-events-none select-none">
+            $
+          </span>
+        )}
+        <Input
+          type="number"
+          value={localValue}
+          step={mode === 'percent' ? 1 : 1000}
+          min={0}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`h-8 text-xs bg-sidebar-accent/30 border-sidebar-border text-sidebar-foreground focus-visible:ring-sidebar-primary ${mode === 'dollar' ? "pl-6" : ""} ${mode === 'percent' ? "pr-8" : ""}`}
+          data-testid={testId}
+        />
+        {mode === 'percent' && (
+          <span className="absolute right-2.5 text-sidebar-foreground/50 text-xs pointer-events-none select-none">
+            %
+          </span>
+        )}
       </div>
     </div>
   );
@@ -117,6 +244,14 @@ export function InputSidebar({ inputs, onChange, onRecalculate }: Props) {
         value={inputs.annualRate}
         onChange={set("annualRate")}
         testId="input-mortgage-rate"
+      />
+      <CustomDownPaymentField
+        label="Custom Down Payment"
+        value={inputs.customDownPaymentValue ?? 20}
+        mode={inputs.customDownPaymentMode ?? "percent"}
+        onChangeValue={set("customDownPaymentValue")}
+        onChangeMode={(mode) => onChange({ ...inputs, customDownPaymentMode: mode as "percent" | "dollar" })}
+        testId="input-custom-down"
       />
 
       <FieldGroup title="Monthly Costs" />

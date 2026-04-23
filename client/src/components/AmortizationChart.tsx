@@ -51,10 +51,11 @@ function ChartTooltip({ active, payload, label }: CustomTooltipProps) {
 
 // Single scenario stacked bar chart
 function SingleScenarioChart({ scenario, term }: { scenario: ScenarioResult; term: Term }) {
+  const termResult = scenario.terms[term];
   const schedule = useMemo(
-    () => buildAmortizationSchedule(scenario.insuredPrincipal, 0, term),
+    () => buildAmortizationSchedule(termResult.insuredPrincipal, 0, term),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [scenario.insuredPrincipal, term]
+    [termResult.insuredPrincipal, term]
   );
 
   // Need the actual rate from the scenario — pass via parent
@@ -65,10 +66,11 @@ function SingleScenarioChart({ scenario, term }: { scenario: ScenarioResult; ter
 function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResult[]; annualRate: number; term: Term }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const scenario = scenarios[selectedIdx];
+  const termResult = scenario.terms[term];
 
   const schedule = useMemo(
-    () => buildAmortizationSchedule(scenario.insuredPrincipal, annualRate, term),
-    [scenario.insuredPrincipal, annualRate, term]
+    () => buildAmortizationSchedule(termResult.insuredPrincipal, annualRate, term),
+    [termResult.insuredPrincipal, annualRate, term]
   );
 
   // Cumulative chart data
@@ -87,7 +89,7 @@ function TermContent({ scenarios, annualRate, term }: { scenarios: ScenarioResul
   }));
 
   const totalInterest = Math.round(schedule[schedule.length - 1]?.cumulativeInterest ?? 0);
-  const totalPrincipal = Math.round(scenario.insuredPrincipal);
+  const totalPrincipal = Math.round(termResult.insuredPrincipal);
   const interestRatio = totalInterest / (totalInterest + totalPrincipal);
 
   return (
