@@ -25,4 +25,6 @@ export const mortgageInputsSchema = z.object({
   homeInsuranceMonthly: z.number().min(0),
   postTaxIncomeMonthly: z.number().min(0),
   householdSpendingMonthly: z.number().min(0),
+  customDownPayment: z.number().min(0),
+  customDownPaymentType: z.enum(["percent", "amount"]).default("percent"),
 });

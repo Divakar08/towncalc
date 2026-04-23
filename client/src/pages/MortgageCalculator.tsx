@@ -17,6 +17,8 @@ const DEFAULT_INPUTS: MortgageInputs = {
   homeInsuranceMonthly: 120,
   postTaxIncomeMonthly: 12_000,
   householdSpendingMonthly: 3_500,
+  customDownPayment: 12,
+  customDownPaymentType: "percent",
 };
 
 export default function MortgageCalculator() {
@@ -96,36 +98,42 @@ export default function MortgageCalculator() {
           </div>
         </header>
 
-        <div className="p-5 flex flex-col gap-6 min-w-0">
+        <div className="p-4 md:p-6 flex flex-col gap-6 min-w-0">
           {/* Down-payment scenario cards */}
           <section>
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Down Payment Scenarios</h2>
             <ScenarioCards scenarios={scenarios} selectedTerm={selectedTerm} />
           </section>
 
-          {/* Payment analysis tabs + bi-weekly panel */}
-          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
-            <section className="w-full xl:flex-1 min-w-0">
-              <TermTabs
-                scenarios={scenarios}
-                selectedTerm={selectedTerm}
-                onTermChange={setSelectedTerm}
-                inputs={inputs}
-              />
-            </section>
-            <section className="w-full xl:w-80 flex-shrink-0">
-              <BiWeeklyPanel scenarios={scenarios} />
-            </section>
-          </div>
+          <div className="flex flex-col lg:flex-row gap-6 items-start min-w-0">
+            <div className="flex flex-col gap-6 w-full lg:flex-1 min-w-0">
+              {/* Payment analysis tabs */}
+              <section className="w-full min-w-0">
+                <TermTabs
+                  scenarios={scenarios}
+                  selectedTerm={selectedTerm}
+                  onTermChange={setSelectedTerm}
+                  inputs={inputs}
+                />
+              </section>
 
-          {/* NEW: Amortization breakdown + Lump-sum calculator side by side */}
-          <div className="flex flex-col xl:flex-row gap-5 items-start min-w-0">
-            <section className="w-full xl:flex-1 min-w-0">
-              <AmortizationChart scenarios={scenarios} annualRate={inputs.annualRate} />
-            </section>
-            <section className="w-full xl:w-[480px] flex-shrink-0">
-              <LumpSumCalculator scenarios={scenarios} annualRate={inputs.annualRate} />
-            </section>
+              {/* Amortization breakdown */}
+              <section className="w-full min-w-0">
+                <AmortizationChart scenarios={scenarios} annualRate={inputs.annualRate} />
+              </section>
+            </div>
+
+            <div className="flex flex-col gap-6 w-full lg:w-[360px] xl:w-[420px] flex-shrink-0">
+              {/* Bi-weekly panel */}
+              <section className="w-full">
+                <BiWeeklyPanel scenarios={scenarios} />
+              </section>
+
+              {/* Lump-sum calculator */}
+              <section className="w-full">
+                <LumpSumCalculator scenarios={scenarios} annualRate={inputs.annualRate} />
+              </section>
+            </div>
           </div>
         </div>
       </main>
