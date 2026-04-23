@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, Building2 } from "lucide-react";
-import { useState, useEffect } from "react";
 
 interface Props {
   inputs: MortgageInputs;
@@ -32,34 +31,9 @@ interface NumberFieldProps {
 }
 
 function NumberField({ label, value, onChange, prefix, suffix, step = 1, min = 0, testId, hint }: NumberFieldProps) {
-  const [localValue, setLocalValue] = useState<string>(value.toString());
-
-  useEffect(() => {
-    if (parseFloat(localValue) !== value && !isNaN(value)) {
-      setLocalValue(value.toString());
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setLocalValue(val);
-
-    const parsed = parseFloat(val);
-    if (!isNaN(parsed)) {
-      onChange(parsed);
-    }
-  };
-
-  const handleBlur = () => {
-    if (localValue === "" || isNaN(parseFloat(localValue))) {
-      setLocalValue("0");
-      onChange(0);
-    }
-  };
-
   return (
     <div className="px-5 mb-3">
-      {label && <Label className="text-sidebar-foreground/70 text-xs mb-1.5 block">{label}</Label>}
+      <Label className="text-sidebar-foreground/70 text-xs mb-1.5 block">{label}</Label>
       {hint && <p className="text-[10px] text-sidebar-foreground/40 mb-1 leading-tight">{hint}</p>}
       <div className="relative flex items-center">
         {prefix && (
@@ -69,11 +43,10 @@ function NumberField({ label, value, onChange, prefix, suffix, step = 1, min = 0
         )}
         <Input
           type="number"
-          value={localValue}
+          value={value}
           step={step}
           min={min}
-          onChange={handleChange}
-          onBlur={handleBlur}
+          onChange={(e) => onChange(Number(e.target.value))}
           className={`h-8 text-xs bg-sidebar-accent/30 border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus-visible:ring-sidebar-primary ${prefix ? "pl-6" : ""} ${suffix ? "pr-10" : ""}`}
           data-testid={testId}
         />
@@ -93,46 +66,17 @@ function RateField({ label, value, onChange, testId }: {
   onChange: (v: number) => void;
   testId?: string;
 }) {
-  const [localValue, setLocalValue] = useState<string>((value * 100).toString());
-
-  useEffect(() => {
-    const expected = value * 100;
-    if (parseFloat(localValue) !== expected && !isNaN(expected)) {
-      setLocalValue(expected.toString());
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setLocalValue(val);
-
-    const parsed = parseFloat(val);
-    if (!isNaN(parsed)) {
-      onChange(parsed / 100);
-    }
-  };
-
-  const handleBlur = () => {
-    if (localValue === "" || isNaN(parseFloat(localValue))) {
-      setLocalValue("0");
-      onChange(0);
-    } else {
-      setLocalValue(parseFloat(localValue).toString());
-    }
-  };
-
   return (
     <div className="px-5 mb-3">
       <Label className="text-sidebar-foreground/70 text-xs mb-1.5 block">{label}</Label>
       <div className="relative flex items-center">
         <Input
           type="number"
-          value={localValue}
+          value={(value * 100).toFixed(2)}
           step={0.05}
           min={0}
           max={25}
-          onChange={handleChange}
-          onBlur={handleBlur}
+          onChange={(e) => onChange(Number(e.target.value) / 100)}
           className="h-8 text-xs bg-sidebar-accent/30 border-sidebar-border text-sidebar-foreground focus-visible:ring-sidebar-primary pr-8"
           data-testid={testId}
         />
